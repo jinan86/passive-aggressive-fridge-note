@@ -1,30 +1,36 @@
 #!/usr/bin/env python3
-"""Notes From a Passive-Aggressive Fridge.
+"""Passive-aggressive fridge note.
 
-Writes a single line of text to /output/entry.txt: the note a smart
-fridge leaves on its door screen for its owner.
+The fridge has perfect memory and a grudge: it remembered the
+owner's birthday, said nothing for eleven months, and now lets
+the magnets do the judging.
 
-The joke: the fridge remembered the owner's birthday and sat on it for
-eleven months out of "respect" -- and now reports that even the magnets
-are disappointed. Smug perfect memory, a small domestic grudge, and the
-sting lands in the last clause.
-
-Stdlib only, fully deterministic: the same bytes on every run.
+Stdlib only. Deterministic: every run writes the same bytes.
 """
 
-import os
+from pathlib import Path
 
-ENTRY = (
-    "I remember your birthday. I've kept it to myself for eleven months "
-    "out of respect, but the magnets know, and they're disappointed."
-)
-# Gate: 1-200 characters, one line, UTF-8, not only whitespace.
+# The note, kept in small pieces so each clause stays readable.
+OPENING = "I remember your birthday. "
+WITHHELD = "I've kept it to myself for eleven months "
+REASON = "out of respect, "
+PUNCHLINE = "but the magnets know, and they're disappointed."
+
+OUTPUT_PATH = Path("/output/entry.txt")
+
+
+def build_note() -> str:
+    """Join the clauses into the single-line fridge note."""
+    return OPENING + WITHHELD + REASON + PUNCHLINE
 
 
 def main() -> None:
-    os.makedirs("/output", exist_ok=True)
-    with open("/output/entry.txt", "w", encoding="utf-8", newline="") as f:
-        f.write(ENTRY)
+    note = build_note()
+    # Guard the entry gate before writing: one line, 1-200 chars.
+    assert 1 <= len(note) <= 200, "entry must be 1-200 characters"
+    assert "\n" not in note and note.strip(), "entry must be a single non-blank line"
+    OUTPUT_PATH.parent.mkdir(parents=True, exist_ok=True)
+    OUTPUT_PATH.write_text(note, encoding="utf-8")
 
 
 if __name__ == "__main__":
